@@ -1,0 +1,23 @@
+{
+  "name": "loli",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "deepcopy": "^0.6.3",
+    "install": "^0.10.1",
+    "npm": "^5.5.1",
+    "react": "^16.0.0",
+    "react-document-title": "^2.0.3",
+    "react-dom": "^16.0.0",
+    "react-file-processor": "^0.0.2",
+    "react-scripts": "1.0.17",
+    "semantic-ui-css": "^2.2.12",
+    "semantic-ui-react": "^0.76.0"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
+  }
+}
