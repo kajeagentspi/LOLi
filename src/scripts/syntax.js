@@ -14,27 +14,23 @@ export function syntax(outputChanger,symbolTable,Olines){
   var itStack=[]
   removeComment(lines)
   for(var i = 0;i < lines.length; i += 1){
-    console.log(itStack.slice(-2)[0]);
-    var line = lines[i]
-    if (itStack.slice(-2)[0]!=='ORLY'&&regex.YARLY.test(line[0][0])===true) {
-      return outputChanger(output+='ERROR: MISSING O RLY?\n')
-    }
-    if (itStack.slice(-2)[0]!=='YARLY'&&regex.NOWAI.test(line[0][0])===true) {
-      return outputChanger(output+='ERROR: MISSING YA RLY\n')
-    }
-    if (itStack.slice(-2)[0]!=='NOWAI'&&regex.OIC.test(line[0][0])===true) {
-      return outputChanger(output+='ERROR: MISSING NO WAI\n')
-    }
-    // if (itStack.slice(-2)[0]==='YARLY'&&regex.NOWAI.test(line[0][0])!==true) {
-    //   return outputChanger(output+='ERROR: Expected NO WAI\n')
-    // }
-    // if (itStack.slice(-2)[0]==='NOWAI'&&regex.OIC.test(line[0][0])!==true) {
-    //   return outputChanger(output+='ERROR: Expected OIC\n')
-    // }
-    if ((itStack.slice(-1)[0]==='ifskip'&&regex.NOWAI.test(line[0][0])!==true)||(itStack.slice(-1)[0]==='elseskip'&&regex.OIC.test(line[0][0])!==true)) {
-      continue
-    }
 
+    var line = lines[i]
+    console.log(itStack);
+    if (itStack.length>1) {
+      if (itStack.slice(-2)[0]==='FAIL'&&!regex.NOWAI.test(line[0][0])&&!regex.ORLY.test(line[0][0])) {
+        continue
+      }
+      if (itStack.slice(-2)[0]==='NOEVAL'&&!regex.OIC.test(line[0][0])) {
+        continue
+      }
+      else if (itStack.slice(-2)[0]==='NOEVAL'&&regex.OIC.test(line[0][0])) {
+        itStack.push('FAIL')
+        itStack.push('YARLY')
+        itStack.push('FAIL')
+        itStack.push('NOWAI')
+      }
+    }
     if (line.length === 0) {
       continue
     }
@@ -52,6 +48,40 @@ export function syntax(outputChanger,symbolTable,Olines){
     }
     else if (regex.KTHXBYE.test(line[0][0]) && progstart === true) {
       progend = true
+    }
+    else if (regex.ORLY.test(line[0][0])) {
+      if (itStack.length===0) {
+          itStack.push('EVAL')
+      }
+      else {
+        if (itStack.slice(-2)[0]==='WIN') {
+          itStack.push('EVAL')
+        }else {
+          itStack.push('NOEVAL')
+        }
+      }
+      itStack.push('ORLY')
+      if (regex.YARLY.test(lines[i+1][0][0])!==true) {
+        return outputChanger(output+='ERROR: Expected YA RLY\n')
+      }
+    }
+    else if (regex.YARLY.test(line[0][0])) {
+      itStack.push(booleanConverter(symbolTable['IT'][0]))
+      itStack.push('YARLY')
+    }
+    else if (regex.NOWAI.test(line[0][0])) {
+      if (booleanConverter(symbolTable['IT'][0])==='WIN') {
+        itStack.push('FAIL')
+      }else {
+        itStack.push('WIN')
+      }
+      itStack.push('NOWAI')
+    }
+    else if (regex.OIC.test(line[0][0])) {
+      itStack.push('OIC')
+      if (itStack.slice(-6)[0]==='ORLY') {
+        itStack.splice(-7)
+      }
     }
     else if (regex.ARITHMETICEXPR.test(line[0][0])||regex.BOOLEANEXPR.test(line[0][0])||regex.INFINITYTWO.test(line[0][0])){
       temp = line.slice()
@@ -196,41 +226,6 @@ export function syntax(outputChanger,symbolTable,Olines){
       }
       outputChanger(output+=temp)
     }
-    else if (regex.ORLY.test(line[0][0])) {
-      itStack.push('ORLY')
-      itStack.push(booleanConverter(symbolTable['IT'][0]))
-      if (regex.YARLY.test(lines[i+1][0][0])!==true) {
-        return outputChanger(output+='ERROR: Expected YA RLY\n')
-      }
-    }
-    else if (regex.YARLY.test(line[0][0])) {
-      itStack.push('YARLY')
-      console.log();
-      if (itStack.slice(-2)[0]==='WIN') {
-        itStack.push('noifskip')
-      }
-      else {
-        itStack.push('ifskip')
-      }
-    }
-    else if (regex.NOWAI.test(line[0][0])) {
-      var pending
-      if (itStack.slice(-1)[0]==='ifskip') {
-        pending='elsenoskip'
-      }
-      else {
-        pending='elseskip'
-      }
-      itStack.pop()
-      itStack.push('NOWAI')
-      itStack.push(pending)
-    }
-    else if (regex.OIC.test(line[0][0])) {
-      itStack.pop() // pops nowaiskip
-      if (itStack.slice(-4)[0]==='ORLY') {
-        itStack.splice(-4)
-      }
-    }
     else if (regex.VARIABLE.test(line[0][0])) {
       if (regex.RESERVED.test(line[0][0])) {
         return outputChanger(output+='ERROR Reserved Word\n')
@@ -308,11 +303,54 @@ export function syntax(outputChanger,symbolTable,Olines){
         }
       }
     }
+    else if (regex.ORLY.test(line[0][0])) {
+      if (itStack.length===0) {
+          itStack.push('EVAL')
+      }
+      else {
+        if (itStack.slice(-2)[0]==='WIN') {
+          itStack.push('EVAL')
+        }else {
+          itStack.push('NOEVAL')
+        }
+      }
+      itStack.push('ORLY')
+      if (regex.YARLY.test(lines[i+1][0][0])!==true) {
+        return outputChanger(output+='ERROR: Expected YA RLY\n')
+      }
+    }
+    else if (regex.YARLY.test(line[0][0])) {
+      itStack.push(booleanConverter(symbolTable['IT'][0]))
+      itStack.push('YARLY')
+    }
+    else if (regex.NOWAI.test(line[0][0])) {
+      if (booleanConverter(symbolTable['IT'][0])==='WIN') {
+        itStack.push('FAIL')
+      }else {
+        itStack.push('WIN')
+      }
+      itStack.push('NOWAI')
+    }
+    else if (regex.OIC.test(line[0][0])) {
+      console.log(itStack);
+
+      itStack.push('OIC')
+      if (itStack.slice(-6)[0]==='ORLY') {
+        itStack.splice(-7)
+      }
+    }
+    else {
+      return outputChanger(output+='ERROR: Unknown Statement\n')
+    }
   }
   if (progend === false) {
+    if (itStack.length===0) {
+      return outputChanger(output+='ERROR: Missing OIC')
+    }
     return outputChanger(output+='ERROR: Expected KTHXBYE')
   }
   else{
+    console.log(itStack);
     return outputChanger(output)
   }
 }
@@ -640,11 +678,11 @@ function solveOperations(symbolTable, oStack){
   var booleanOperators = ['&&', '||', '^', '!', '!=', '==']
   var infiniteOperators = ['@&', '@|']
   var mkay=-1
-  console.log(oStack);
+
 
   i = oStack.length - 1
   while(i>=-1){
-    console.log(oStack[i]);
+    console.log(oStack);
     if (i===-1&&mkay!==-1) {
       return 'ERROR: Detected MKAY but no Infinite Expression found'
     }
@@ -713,13 +751,14 @@ function solveOperations(symbolTable, oStack){
     }
     else if (booleanOperators.indexOf(oStack[i])>-1) {
       console.log('IN');
-      if (oStack[0]!=='!'&&(oStack[i+1]===undefined||oStack[i+3]===undefined||oStack[i+2]!=='AN')){
+      if (oStack[i]!=='!'&&(oStack[i+1]===undefined||oStack[i+3]===undefined||oStack[i+2]!=='AN')){
         return 'SYNTAX ERROR: Missing Parameters'
       }
-      else if (oStack[0]==='!'&&oStack[i+1]===undefined) {
+      else if (oStack[i]==='!'&&oStack[i+1]===undefined) {
         return 'SYNTAX ERROR: Missing Parameters'
       }
-      else if (oStack[0]!=='!'){
+      else if (oStack[i]!=='!'){
+        console.log();
         console.log(oStack);
         if (booleanIntOperators.indexOf(oStack[0])===-1) {
           oStack[i+1]=booleanConverter(oStack[i+1])
@@ -742,7 +781,7 @@ function solveOperations(symbolTable, oStack){
         oStack[i+1]=booleanConverter(oStack[i+1])
         console.log(oStack[i+1]);
         oStack[i] = getEvaluator(oStack[i],oStack[i+1],null)
-        oStack.splice(i+1,2)
+        oStack.splice(i+1,1)
         i = oStack.length - 1
       }
     }

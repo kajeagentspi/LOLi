@@ -16,7 +16,7 @@ class MainWindow extends Component{
   constructor(props) {
     super(props);
     this.state = {
-      input: 'HAI\nO RLY?\nKTHXBYE',
+      input: 'HAI\nO RLY?\nYA RLY                   BTW if\nVISIBLE "FUCK0i"\nO RLY?\nYA RLY                   BTW if\nVISIBLE "FUCK1ii"\nNO WAI                   BTW else\nVISIBLE "SHIT1ie"\nOIC\nNO WAI                   BTW else\nVISIBLE "SHIT0e"\nO RLY?\nYA RLY                   BTW if\nVISIBLE "FUCK1ei"\nNO WAI                   BTW else\nVISIBLE "SHIT1ee"\nOIC\nOIC\nKTHXBYE',
       lexemes: [],
       output: '',
       symbolTable: {}
