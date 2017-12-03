@@ -1,7 +1,7 @@
 var deepcopy = require("deepcopy");
 const regex = require('./regex');
 
-export function syntax(symbolTable,Olines){
+export function syntax(outputChanger,symbolTable,Olines){
   var value
   for (var key in symbolTable) delete symbolTable[key];
   symbolTable['IT'] = [undefined, 'NOOB']
@@ -11,23 +11,44 @@ export function syntax(symbolTable,Olines){
   var lines = deepcopy(Olines)
   var result
   var output = ''
+  var itStack=[]
   removeComment(lines)
   for(var i = 0;i < lines.length; i += 1){
+    console.log(itStack.slice(-2)[0]);
     var line = lines[i]
+    if (itStack.slice(-2)[0]!=='ORLY'&&regex.YARLY.test(line[0][0])===true) {
+      return outputChanger(output+='ERROR: MISSING O RLY?\n')
+    }
+    if (itStack.slice(-2)[0]!=='YARLY'&&regex.NOWAI.test(line[0][0])===true) {
+      return outputChanger(output+='ERROR: MISSING YA RLY\n')
+    }
+    if (itStack.slice(-2)[0]!=='NOWAI'&&regex.OIC.test(line[0][0])===true) {
+      return outputChanger(output+='ERROR: MISSING NO WAI\n')
+    }
+    // if (itStack.slice(-2)[0]==='YARLY'&&regex.NOWAI.test(line[0][0])!==true) {
+    //   return outputChanger(output+='ERROR: Expected NO WAI\n')
+    // }
+    // if (itStack.slice(-2)[0]==='NOWAI'&&regex.OIC.test(line[0][0])!==true) {
+    //   return outputChanger(output+='ERROR: Expected OIC\n')
+    // }
+    if ((itStack.slice(-1)[0]==='ifskip'&&regex.NOWAI.test(line[0][0])!==true)||(itStack.slice(-1)[0]==='elseskip'&&regex.OIC.test(line[0][0])!==true)) {
+      continue
+    }
+
     if (line.length === 0) {
       continue
     }
     else if (regex.HAI.test(line[0][0]) && progstart === true) {
-      return output+='SYNTAX ERROR: Duplicate HAI detected\n'
+      return outputChanger(output+='SYNTAX ERROR: Duplicate HAI detected\n')
     }
     else if(regex.HAI.test(line[0][0])){
       progstart = true
     }
     else if (progstart === false) {
-      return output+='SYNTAX ERROR: Program Not Yet Started\n'
+      return outputChanger(output+='SYNTAX ERROR: Program Not Yet Started\n')
     }
     else if (progend === true) {
-      return output+='SYNTAX ERROR: Program Already Ended\n'
+      return outputChanger(output+='SYNTAX ERROR: Program Already Ended\n')
     }
     else if (regex.KTHXBYE.test(line[0][0]) && progstart === true) {
       progend = true
@@ -36,7 +57,7 @@ export function syntax(symbolTable,Olines){
       temp = line.slice()
       temp = operationTranslate(temp,symbolTable)
       if (typeof(temp)==='string') {
-        return output+=temp+'\n'
+        return outputChanger(output+=temp+'\n')
       }
       result = solveOperations(symbolTable,temp)
       if (typeof(result[0]) === 'number'||regex.TROOF.test(result[0])){
@@ -44,39 +65,42 @@ export function syntax(symbolTable,Olines){
       }
       else {
         console.log(result);
-        return output+=result+'\n'
+        return outputChanger(output+=result+'\n')
       }
     }
     else if (regex.SMOOSH.test(line[0][0])) {
       temp=line.slice()
       temp = operationTranslate(temp,symbolTable)
       if (typeof(temp)==='string') {
-        return output+=temp+'\n'
+        return outputChanger(output+=temp+'\n')
       }
       result = solveOperations(symbolTable, temp)
-      if (result[0].startsWith('ERROR')!==true){
+      if (typeof(result)!=='string'){
         symbolTable['IT'] = result
       }
       else {
         console.log(result);
-        return output+=result+'\n'
+        return outputChanger(output+=result+'\n')
       }
     }
     else if (regex.IHASA.test(line[0][0])) {
       if (line[1] === undefined) {
-        return output+='SYNTAX ERROR: Expected Parameter after I HAS A\n'
+        return outputChanger(output+='ERROR: Expected Parameter after I HAS A\n')
       }
       else{
         if (regex.RESERVED.test(line[1][0])){
-          return output+='SYNTAX ERROR: Reserved Word\n'
+          return outputChanger(output+='ERROR: Reserved Word\n')
         }
         if (regex.VARIABLE.test(line[1][0])===false) {
-          return output+='SYNTAX ERROR: Invalid VARIABLE Name\n'
+          return outputChanger(output+='ERROR: Invalid VARIABLE Name\n')
+        }
+        if (symbolTable.hasOwnProperty(line[1][0])) {
+          return outputChanger(output+='ERROR: Variable Already Declared\n')
         }
         symbolTable[line[1][0]]=[undefined,'NOOB']
         if (line[2] !== undefined){
           if (line[3] === undefined && line[2][0]==='ITZ'){
-            return output+='SYNTAX ERROR: Expected Parameter after ITZ\n'
+            return outputChanger(output+='ERROR: Expected Parameter after ITZ\n')
           }
           else if(regex.ITZ.test(line[2][0])){
             console.log(line[3][0]);
@@ -85,14 +109,14 @@ export function syntax(symbolTable,Olines){
               console.log(temp);
               temp = operationTranslate(temp,symbolTable)
               if (typeof(temp)==='string') {
-                return output+=temp+'\n'
+                return outputChanger(output+=temp+'\n')
               }
               result = solveOperations(symbolTable,temp)
               if (typeof(result[0]) === 'number'||regex.TROOF.test(result[0])){
                 symbolTable[line[1][0]] = result
               }
               else {
-                return output+=result+'\n'
+                return outputChanger(output+=result+'\n')
               }
             }
             else if (regex.LITERAL.test(line[3][0])&&line[4]===undefined) {
@@ -115,7 +139,7 @@ export function syntax(symbolTable,Olines){
                     symbolTable[line[1][0]] = value
                 }
                 else {
-                  return output+='Variable not found in Symbol Table\n'
+                  return outputChanger(output+='Variable not found in Symbol Table\n')
                 }
               }
             }
@@ -124,35 +148,35 @@ export function syntax(symbolTable,Olines){
               console.log(temp);
               temp = operationTranslate(temp,symbolTable)
               if (typeof(temp)==='string') {
-                return output+=temp+'\n'
+                return outputChanger(output+=temp+'\n')
               }
               result = solveOperations(symbolTable,temp)
               if (result[0].startsWith('ERROR')===false){
                 symbolTable[line[1][0]] = result
               }
               else {
-                return output+=result+'\n'
+                return outputChanger(output+=result+'\n')
               }
             }
             else {
-              return output+='Invalid Parameter in ITZ detected\n'
+              return outputChanger(output+='Invalid Parameter in ITZ detected\n')
             }
           }
           else {
-            return output+='Extra Parameter in I HAS A\n'
+            return outputChanger(output+='Extra Parameter in I HAS A\n')
           }
         }
       }
     }
     else if (regex.GIMMEH.test(line[0][0])) {
       if (line.length!==2){
-        return output+='ERROR: Expected end of line'
+        return outputChanger(output+='ERROR: Expected end of line')
       }
       if (regex.RESERVED.test(line[1][0])) {
-        return output+='ERROR Reserved Word\n'
+        return outputChanger(output+='ERROR Reserved Word\n')
       }
       if (symbolTable[line[1][0]]===undefined&&line[1][0] in symbolTable === false) {
-        return output+='Variable not found in Symbol Table\n'
+        return outputChanger(output+='Variable not found in Symbol Table\n')
       }
       do{
         temp = prompt("Give input");
@@ -164,31 +188,66 @@ export function syntax(symbolTable,Olines){
       temp = operationTranslate(temp,symbolTable)
       console.log(temp);
       if (typeof(temp)==='string') {
-        return output+=temp+'\n'
+        return outputChanger(output+=temp+'\n')
       }
       temp = visibleEvaluator(temp,symbolTable)
       if (temp.startsWith('ERROR')) {
-        return output+=temp+'\n'
+        return outputChanger(output+=temp+'\n')
       }
-      output+=temp
+      outputChanger(output+=temp)
+    }
+    else if (regex.ORLY.test(line[0][0])) {
+      itStack.push('ORLY')
+      itStack.push(booleanConverter(symbolTable['IT'][0]))
+      if (regex.YARLY.test(lines[i+1][0][0])!==true) {
+        return outputChanger(output+='ERROR: Expected YA RLY\n')
+      }
+    }
+    else if (regex.YARLY.test(line[0][0])) {
+      itStack.push('YARLY')
+      console.log();
+      if (itStack.slice(-2)[0]==='WIN') {
+        itStack.push('noifskip')
+      }
+      else {
+        itStack.push('ifskip')
+      }
+    }
+    else if (regex.NOWAI.test(line[0][0])) {
+      var pending
+      if (itStack.slice(-1)[0]==='ifskip') {
+        pending='elsenoskip'
+      }
+      else {
+        pending='elseskip'
+      }
+      itStack.pop()
+      itStack.push('NOWAI')
+      itStack.push(pending)
+    }
+    else if (regex.OIC.test(line[0][0])) {
+      itStack.pop() // pops nowaiskip
+      if (itStack.slice(-4)[0]==='ORLY') {
+        itStack.splice(-4)
+      }
     }
     else if (regex.VARIABLE.test(line[0][0])) {
       if (regex.RESERVED.test(line[0][0])) {
-        return output+='ERROR Reserved Word\n'
+        return outputChanger(output+='ERROR Reserved Word\n')
       }
       if (symbolTable[line[0][0]]===undefined) {
         if (line[0][0] in symbolTable) {
-          return output+='Cannot Parse NOOB to INT\n'
+          return outputChanger(output+='Cannot Parse NOOB to INT\n')
         }
         else {
-          return output+='Variable not found in Symbol Table\n'
+          return outputChanger(output+='Variable not found in Symbol Table\n')
         }
       }
       if (line[1]===undefined) {
-        return output+='Missing R Statement\n'
+        return outputChanger(output+='Missing R Statement\n')
       }
       else if (line[1][0]!=='R') {
-        return output+='Invalid Statement Expected R\n'
+        return outputChanger(output+='Invalid Statement Expected R\n')
       }
       else {
         if (regex.ARITHMETICEXPR.test(line[2][0])||regex.BOOLEANEXPR.test(line[2][0])||regex.INFINITYTWO.test(line[2][0])) {
@@ -196,14 +255,14 @@ export function syntax(symbolTable,Olines){
           console.log(temp);
           temp = operationTranslate(temp,symbolTable)
           if (typeof(temp)==='string') {
-            return output+=temp+'\n'
+            return outputChanger(output+=temp+'\n')
           }
           result = solveOperations(symbolTable,temp)
           if (typeof(result[0]) === 'number'||regex.TROOF.test(result[0])){
             symbolTable[line[0][0]] = result
           }
           else {
-            return output+=result+'\n'
+            return outputChanger(output+=result+'\n')
           }
         }
         else if (regex.SMOOSH.test(line[2][0])) {
@@ -211,14 +270,14 @@ export function syntax(symbolTable,Olines){
           console.log(temp);
           temp = operationTranslate(temp,symbolTable)
           if (typeof(temp)==='string') {
-            return output+=temp+'\n'
+            return outputChanger(output+=temp+'\n')
           }
           result = solveOperations(symbolTable,temp)
           if (result[0].startsWith('ERROR')===false){
             symbolTable[line[0][0]] = result
           }
           else {
-            return output+=result+'\n'
+            return outputChanger(output+=result+'\n')
           }
         }
         else if (regex.LITERAL.test(line[2][0])) {
@@ -240,21 +299,21 @@ export function syntax(symbolTable,Olines){
                 symbolTable[line[0][0]] = value
             }
             else {
-              return output+='Variable not found in Symbol Table\n'
+              return outputChanger(output+='ERROR: Variable not found in Symbol Table\n')
             }
           }
         }
         else {
-          return output+='Missing Parameter after R\n'
+          return outputChanger(output+='ERROR: Missing Parameter after R\n')
         }
       }
     }
   }
   if (progend === false) {
-    return output+='SYNTAX ERROR: Expected KTHXBYE'
+    return outputChanger(output+='ERROR: Expected KTHXBYE')
   }
   else{
-    return output
+    return outputChanger(output)
   }
 }
 
@@ -955,7 +1014,7 @@ function booleanConverter(input){
   if(Number.isInteger(parseFloat(input))){
     input=parseFloat(input)
   }
-  if(regex.YARN.test(input)|| (input !== 0 && input!== 'FAIL' && input!==undefined)||input==='WIN'){
+  if((regex.YARN.test(input)&&input!=="\"\"")|| (input !== 0 && input!== 'FAIL' && input!==undefined)||input==='WIN'){
       return 'WIN'
   }
   else{

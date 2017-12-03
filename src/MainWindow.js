@@ -16,12 +16,14 @@ class MainWindow extends Component{
   constructor(props) {
     super(props);
     this.state = {
-      input: 'HAI\nSMOOSH 1 AN 2\nKTHXBYE',
+      input: 'HAI\nO RLY?\nKTHXBYE',
       lexemes: [],
       output: '',
       symbolTable: {}
     }
     this.inputChange = this.inputChange.bind(this);
+    this.outputChanger = this.outputChanger.bind(this);
+
     this.updateTables = this.updateTables.bind(this);
     this.loadFile = this.loadFile.bind(this);
   }
@@ -37,16 +39,23 @@ class MainWindow extends Component{
     }
   }
 
+
   inputChange(e){
     this.setState({input: e.target.value})
   }
-
+  outputChanger(output){
+    this.setState({output:output},()=>{
+      console.log(this.state.output);
+    })
+  }
   updateTables(){
     const lexemes=parser(this.state.input)
     this.setState({lexemes: lexemes})
-    const output=syntax(this.state.symbolTable, lexemes)
-    this.setState({output: output})
-    console.log(this.state.symbolTable);
+    syntax(this.outputChanger,this.state.symbolTable, lexemes)
+    // console.log(this.state);
+
+    // this.setState({output: output})
+    // console.log(this.state.symbolTable);
   }
 
   render(){

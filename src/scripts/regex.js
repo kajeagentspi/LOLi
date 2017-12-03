@@ -48,21 +48,21 @@ module.exports = {
 
   'R': /^\s*[A-Za-z][A-Za-z0-9_]*\s+R\s+.+\s*$/,
 
-  'ORLY': /^\s*O RLY\?\s*$/,
+  'ORLY': /^O RLY\?$/,
 
-  'YARLY': /^\s*YA RLY\s*$/,
+  'YARLY': /^YA RLY$/,
 
-  'NOWAI': /^\s*NO WAI\s*$/,
+  'NOWAI': /^NO WAI$/,
 
-  'OIC': /^\s*OIC\s*$/,
+  'OIC': /^OIC$/,
 
-  'WTF': /^\s*WTF\?\s*$/,
+  'WTF': /^WTF\?$/,
 
-  'OMG': /^\s*OMG\s*/,
+  'OMG': /^OMG$/,
 
-  'GTFO': /^\s*GTFO\s*$/,
+  'GTFO': /^GTFO$/,
 
-  'OMGWTF': /^\s*OMGWTF\s*$/,
+  'OMGWTF': /^OMGWTF$/,
 
 
   'ARITHMETICEXPR': /^(SUM OF|DIFF OF|PRODUKT OF|QUOSHUNT OF|MOD OF|BIGGR OF|SMALLR OF)$/,
